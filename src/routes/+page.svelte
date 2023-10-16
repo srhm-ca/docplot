@@ -247,7 +247,7 @@
     border: 1px solid #ccc;
     flex-grow: 1;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-    overflow: scroll;
+    overflow-y: scroll;
   }
 
   #file {
