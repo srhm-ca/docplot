@@ -63,7 +63,7 @@
           // split the text into chunks of 512 tokens
           let chunks = chunkString(text, 512);
           let chunkEmbeddings = [];
-          // for each chunks, calculate the embeddings
+          // for each chink, calculate the embeddings
           for (let chunk of chunks) {
             // print progress to log
             console.log(
@@ -71,13 +71,15 @@
                 chunks.length
               }`
             );
+            // tokenize chunks
             let inputs = await tokenizer(chunk, {
               truncation: true,
               padding: true,
             });
+            // encode tokens
             let output = await model(inputs);
-            let vector = output.last_hidden_state.data.slice(0, 384);
-            chunkEmbeddings.push(vector);
+            // get embedding from final layer's CLS token
+            chunkEmbeddings.push(output.last_hidden_state.data.slice(0, 384));
           }
           // calculate the average embeddings
           let avgVector = averageVectors(chunkEmbeddings);
@@ -143,13 +145,14 @@
     });
   }
 
-  // delete all files
+  // delete all files (unused for now)
   function deleteAllFiles() {
     setFiles([]);
     embeddings.set([]);
   }
 
   // intialize model and tokenizer
+  //all-MiniLM-L6-v2 is a tiny model, but probably the best we can get in browser for now
   async function initialize() {
     try {
       tokenizer = await AutoTokenizer.from_pretrained(
