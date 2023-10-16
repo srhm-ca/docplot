@@ -195,12 +195,6 @@
                 >
               </div>
             {/each}
-          {:else}
-            <p
-              style="text-align: center; align-self: center; color: #bbb; font-size: 400%; margin:auto;"
-            >
-              ∅
-            </p>
           {/if}
         </div>
         <div

@@ -58,8 +58,6 @@
         <li><span>{Math.trunc(similarity * 100)}%—</span>{name}</li>
       {/each}
     </ol>
-  {:else}
-    <p>Ranking will appear here.</p>
   {/if}
 </div>
 
