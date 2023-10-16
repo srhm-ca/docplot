@@ -1,19 +1,45 @@
 <script>
+  // import stores for files, embeddings
   import { files, setFiles } from "$lib/stores/Files";
   import { embeddings } from "$lib/stores/Embeddings";
+
+  // import transformers
   import { env, AutoModel, AutoTokenizer } from "@xenova/transformers";
+  env.allowRemoteModels = true; // allow downloads from huggingface.co
+
+  // import components
   import Ranker from "$lib/components/Ranker.svelte";
 
+  // initialize tokenizer and model
   let tokenizer;
   let model;
 
+  // initialize query
   let query = "";
   let queryPrevious = "";
   let queryEmbedding = [];
   let calculationTimeout = null;
 
-  env.allowRemoteModels = true;
+  // helper function to split a string into chunks of size
+  function chunkString(str, size) {
+    const strArray = str.split(" ");
+    let chunks = [];
+    for (let i = 0; i < strArray.length; i += size) {
+      chunks.push(strArray.slice(i, i + size).join(" "));
+    }
+    return chunks;
+  }
 
+  // helper function that calculates average of the vectors
+  function averageVectors(vectors) {
+    let sum = vectors[0];
+    for (let i = 1; i < vectors.length; i++) {
+      sum = sum.map((value, index) => value + vectors[i][index]);
+    }
+    return sum.map((value) => value / vectors.length);
+  }
+
+  // reactive query
   $: if (query !== "" && query !== queryPrevious) {
     if (calculationTimeout) {
       clearTimeout(calculationTimeout);
@@ -26,31 +52,35 @@
     }, 500);
   }
 
-
-  async function initialize() {
-    try {
-      tokenizer = await AutoTokenizer.from_pretrained(
-        "Xenova/all-MiniLM-L6-v2"
-      );
-      model = await AutoModel.from_pretrained("Xenova/all-MiniLM-L6-v2");
-    } catch (error) {
-      console.error("Error initializing tokenizer and model:", error);
-    }
-  }
-
+  // function for embedding dropped files
   async function processEmbeddings(file) {
     try {
       if (isPlainText(file)) {
         let reader = new FileReader();
         reader.onload = async function () {
           let text = reader.result;
-          let inputs = await tokenizer(text, {
-            truncation: true,
-            padding: true,
-          });
-          let output = await model(inputs);
-          let vector = output.last_hidden_state.data.slice(0, 384);
-          embeddings.update((arr) => [...arr, vector]);
+          // split the text into chunks of 512 characters
+          let chunks = chunkString(text, 512);
+          let chunkEmbeddings = [];
+          // for each chunks, calculate the embeddings
+          for (let chunk of chunks) {
+            // print progress to log
+            console.log(
+              `Processing ${file.name}: ${chunks.indexOf(chunk) + 1}/${
+                chunks.length
+              }`
+            );
+            let inputs = await tokenizer(chunk, {
+              truncation: true,
+              padding: true,
+            });
+            let output = await model(inputs);
+            let vector = output.last_hidden_state.data.slice(0, 384);
+            chunkEmbeddings.push(vector);
+          }
+          // calculate the average embeddings
+          let avgVector = averageVectors(chunkEmbeddings);
+          embeddings.update((arr) => [...arr, avgVector]);
         };
 
         reader.readAsText(file);
@@ -63,12 +93,14 @@
     }
   }
 
+  // returns true if file is plain text
   function isPlainText(file) {
     if (file.type === "text/plain") {
       return true;
     }
   }
 
+  // drop handler
   function dropHandler(event) {
     event.preventDefault();
     const droppedFiles = Array.from(event.dataTransfer.files);
@@ -84,6 +116,7 @@
     document.getElementById("drop_zone").style.backgroundColor = "#fff";
   }
 
+  // drag over handler, mainly for preventing the browser from opening the file
   function dragOverHandler(event) {
     event.preventDefault();
     document.getElementById("drop_zone").style.backgroundColor = "#eee";
@@ -97,6 +130,7 @@
     setFiles([...$files, ...Array.from(selectedFiles)]);
   }
 
+  // delete file from file store
   function deleteFile(index) {
     const fileToDelete = $files[index];
     setFiles($files.filter((_, i) => i !== index));
@@ -108,6 +142,25 @@
     });
   }
 
+  // delete all files
+  function deleteAllFiles() {
+    setFiles([]);
+    embeddings.set([]);
+  }
+
+  // intialize model and tokenizer
+  async function initialize() {
+    try {
+      tokenizer = await AutoTokenizer.from_pretrained(
+        "Xenova/all-MiniLM-L6-v2"
+      );
+      model = await AutoModel.from_pretrained("Xenova/all-MiniLM-L6-v2");
+    } catch (error) {
+      console.error("Error initializing tokenizer and model:", error);
+    }
+  }
+
+  // initialize page
   let isLoading = true;
   function closeLoadingPopup() {
     isLoading = false;
@@ -124,17 +177,6 @@
     <h1>DocPlot</h1>
     <div id="content">
       <div id="left-gutter">
-        <div
-          id="drop_zone"
-          on:drop={dropHandler}
-          on:dragover={dragOverHandler}
-          role="button"
-          tabindex="0"
-        >
-          <p>Drag plain text files here.</p>
-        </div>
-
-        <h2>Files</h2>
         <div id="file-list">
           {#if $files.length > 0}
             {#each $files as file, i (file.name)}
@@ -158,6 +200,15 @@
             </p>
           {/if}
         </div>
+        <div
+          id="drop_zone"
+          on:drop={dropHandler}
+          on:dragover={dragOverHandler}
+          role="button"
+          tabindex="0"
+        >
+          <p>Drag plain text files here.</p>
+        </div>
       </div>
       <div id="right-gutter">
         <Ranker {queryEmbedding} />
@@ -177,7 +228,7 @@
   }
 
   h1 {
-    text-align: center;
+    margin: 0;
   }
   #drop_zone {
     padding-top: 0.5em;
@@ -205,11 +256,6 @@
     background: #fff;
   }
 
-  #right-gutter {
-    flex-grow: 1;
-    margin-right: 1em;
-  }
-
   #file:hover {
     background: #efefef;
   }
@@ -221,11 +267,12 @@
   }
 
   #app {
-    height: 100vh;
+    height: 85vh;
   }
 
   #content {
-    height: 87vh;
+    padding-top: 1em;
+    height: 100%;
     display: flex;
     flex-direction: row;
     gap: 1em;
@@ -236,6 +283,15 @@
     flex-direction: column;
     width: 30%;
     height: 100%;
+    gap: 1em;
+    max-width: 35ch;
+  }
+
+  #right-gutter {
+    flex-grow: 1;
+    margin-right: 1em;
+    display: flex;
+    flex-direction: column;
   }
 
   #loading-popup {
