@@ -98,9 +98,8 @@
 
   // returns true if file is plain text
   function isPlainText(file) {
-    if (file.type === "text/plain") {
-      return true;
-    }
+    const textTypePrefixes = ["text/", "application/"];
+    return textTypePrefixes.some((prefix) => file.type.startsWith(prefix));
   }
 
   // drop handler
