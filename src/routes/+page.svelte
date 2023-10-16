@@ -2,12 +2,30 @@
   import { files, setFiles } from "$lib/stores/Files";
   import { embeddings } from "$lib/stores/Embeddings";
   import { env, AutoModel, AutoTokenizer } from "@xenova/transformers";
-  import Visualizer from "$lib/components/Visualizer.svelte";
+  import Ranker from "$lib/components/Ranker.svelte";
 
   let tokenizer;
   let model;
 
+  let query = "";
+  let queryPrevious = "";
+  let queryEmbedding = [];
+  let calculationTimeout = null;
+
   env.allowRemoteModels = true;
+
+  $: if (query !== "" && query !== queryPrevious) {
+    if (calculationTimeout) {
+      clearTimeout(calculationTimeout);
+    }
+    calculationTimeout = setTimeout(async () => {
+      const inputs = await tokenizer(query);
+      const output = await model(inputs, { truncation: true, padding: true });
+      queryEmbedding = output.last_hidden_state.data.slice(0, 384);
+      queryPrevious = query;
+    }, 500);
+  }
+
 
   async function initialize() {
     try {
@@ -32,7 +50,6 @@
           });
           let output = await model(inputs);
           let vector = output.last_hidden_state.data.slice(0, 384);
-
           embeddings.update((arr) => [...arr, vector]);
         };
 
@@ -91,33 +108,63 @@
     });
   }
 
-  initialize();
+  let isLoading = true;
+  function closeLoadingPopup() {
+    isLoading = false;
+  }
+  initialize().then(closeLoadingPopup);
 </script>
 
-<h1>DocPlot</h1>
-<div id="content">
-  <div id="left-gutter">
-    <div
-      id="drop_zone"
-      on:drop={dropHandler}
-      on:dragover={dragOverHandler}
-      role="button"
-      tabindex="0"
-    >
-      <p>Drag plain text files <i>here!</i></p>
+<div id="app">
+  {#if isLoading}
+    <div id="loading-popup">
+      <p>Loading model and tokenizer...</p>
     </div>
+  {:else}
+    <h1>DocPlot</h1>
+    <div id="content">
+      <div id="left-gutter">
+        <div
+          id="drop_zone"
+          on:drop={dropHandler}
+          on:dragover={dragOverHandler}
+          role="button"
+          tabindex="0"
+        >
+          <p>Drag plain text files here.</p>
+        </div>
 
-    {#if $files.length > 0}
-      <h2>Files</h2>
-      {#each $files as file, i (file.name)}
-        <p>{file.name}</p>
-        <button on:click={() => deleteFile(i)}>Delete</button>
-      {/each}
-    {/if}
-  </div>
-  <div id="right-gutter">
-    <Visualizer />
-  </div>
+        <h2>Files</h2>
+        <div id="file-list">
+          {#if $files.length > 0}
+            {#each $files as file, i (file.name)}
+              <div id="file">
+                <p
+                  style="flex-grow: 1; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
+                >
+                  {file.name}
+                </p>
+                <button
+                  style="width: fit-content;"
+                  on:click={() => deleteFile(i)}>Delete</button
+                >
+              </div>
+            {/each}
+          {:else}
+            <p
+              style="text-align: center; align-self: center; color: #bbb; font-size: 400%; margin:auto;"
+            >
+              ∅
+            </p>
+          {/if}
+        </div>
+      </div>
+      <div id="right-gutter">
+        <Ranker {queryEmbedding} />
+        <input style="font-size: 100%;" id="query-input" bind:value={query} />
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -125,34 +172,81 @@
     font-family: sans-serif;
     padding: 1em;
     background: #efefef;
+    overflow: hidden;
+    height: 100vh;
   }
+
   h1 {
     text-align: center;
-    background: linear-gradient(
-      90deg,
-      #ff0000,
-      #ff7f00,
-      #ffff00,
-      #00ff00,
-      #0000ff,
-      #4b0082,
-      #8f00ff
-    );
   }
   #drop_zone {
-    border: 2px dashed #ccc;
-    border-radius: 5px;
+    padding-top: 0.5em;
+    border: 1px solid #ccc;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
     padding: 25px;
-    background: #fff;
     text-align: center;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    min-width: fit-content;
+  }
+
+  #file-list {
+    border: 1px solid #ccc;
+    flex-grow: 1;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    overflow: scroll;
+  }
+
+  #file {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5em;
+    border-bottom: 1px solid #ccc;
+    background: #fff;
+  }
+
+  #right-gutter {
+    flex-grow: 1;
+    margin-right: 1em;
+  }
+
+  #file:hover {
+    background: #efefef;
+  }
+
+  #query-input {
+    width: 100%;
+    padding: 0.5em;
+    border: 1px solid #ccc;
+  }
+
+  #app {
+    height: 100vh;
   }
 
   #content {
+    height: 87vh;
     display: flex;
+    flex-direction: row;
     gap: 1em;
   }
 
   #left-gutter {
+    display: flex;
+    flex-direction: column;
     width: 30%;
+    height: 100%;
+  }
+
+  #loading-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
   }
 </style>

@@ -28,8 +28,11 @@
 	"type": "module",
 	"dependencies": {
 		"@xenova/transformers": "^2.6.2",
+		"compute-cosine-similarity": "^1.1.0",
 		"d3": "^7.8.5",
 		"ml-pca": "^4.1.1",
-		"pca-js": "^1.0.2"
+		"pca-js": "^1.0.2",
+		"svd-js": "^1.1.1",
+		"tsne-js": "^1.0.3"
 	}
 }
