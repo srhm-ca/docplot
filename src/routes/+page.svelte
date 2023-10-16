@@ -161,7 +161,7 @@
     }
   }
 
-  // initialize page
+  // initialize page and close popup
   let isLoading = true;
   function closeLoadingPopup() {
     isLoading = false;
