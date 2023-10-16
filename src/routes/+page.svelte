@@ -20,7 +20,8 @@
   let queryEmbedding = [];
   let calculationTimeout = null;
 
-  // helper function to split a string into chunks of size
+  // helper function to split a string into chunks
+  // of given size, if the string size is greater than the given size
   function chunkString(str, size) {
     const strArray = str.split(" ");
     let chunks = [];
@@ -59,7 +60,7 @@
         let reader = new FileReader();
         reader.onload = async function () {
           let text = reader.result;
-          // split the text into chunks of 512 characters
+          // split the text into chunks of 512 tokens
           let chunks = chunkString(text, 512);
           let chunkEmbeddings = [];
           // for each chunks, calculate the embeddings
