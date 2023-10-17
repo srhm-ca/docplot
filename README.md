@@ -10,4 +10,4 @@ DocPlot is written in `Svelte` and `transformers.js`.
 - [ ] model selector
 
 ## Example
-![9c242444926edbf0d20329e52ba5db000ba5e255c5ac536ab42697a14806d49a](https://github.com/srhm-ca/docplot/assets/49847930/47403bc6-5f66-40ab-8464-ff4eb7d25314)
+![Screenshot 2023-10-17 at 15 04 11](https://github.com/srhm-ca/docplot/assets/49847930/35d26084-c57f-46d6-aa1a-11e006556c99)
