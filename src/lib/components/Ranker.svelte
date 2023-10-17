@@ -51,9 +51,9 @@
   });
 </script>
 
-<div style="flex-grow: 1; overflow-y: scroll;">
+<div style="flex-grow: 1; overflow-y: scroll; background: #eee; box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); margin-bottom: 1em; width: 100%;">
   {#if Rank.length > 0}
-    <ol>
+    <ol style="padding: 1em;">
       {#each Rank as { name, similarity }, i}
         <li><span>{Math.trunc(similarity * 100)}%—</span>{name}</li>
       {/each}

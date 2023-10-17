@@ -29,7 +29,7 @@
   let model;
 
   // initialize query
-  let query = "";
+  let query = "Search here...";
   let queryPrevious = "";
   let queryEmbedding = [];
   let calculationTimeout = null;
@@ -223,7 +223,7 @@
       <p>Loading model and tokenizer...</p>
     </div>
   {:else}
-    <h1>DocPlot</h1>
+    <div style="display: flex; gap: 1ch;"><h1>DocPlot</h1><p style="font-style: oblique; font-size: 90%;">Semantic search in your browser, privately.</p></div>
     <div id="content">
       <div id="left-gutter">
         <div id="file-list">
@@ -304,7 +304,6 @@
   }
 
   #query-input {
-    width: 100%;
     padding: 0.5em;
     border: 1px solid #ccc;
   }
@@ -332,7 +331,6 @@
 
   #right-gutter {
     flex-grow: 1;
-    margin-right: 1em;
     display: flex;
     flex-direction: column;
   }
