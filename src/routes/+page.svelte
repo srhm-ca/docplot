@@ -11,9 +11,11 @@
   import Ranker from "$lib/components/Ranker.svelte";
 
   // import pdf.js
-  import * as pdfjsLib from "pdfjs-dist";
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const loadPdfJs = async () => {
+  const pdfjsLib = await import('pdfjs-dist');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  return pdfjsLib;
+  }
   
   // initialize tokenizer and model
   let tokenizer;
@@ -187,6 +189,7 @@
         "Xenova/all-MiniLM-L6-v2"
       );
       model = await AutoModel.from_pretrained("Xenova/all-MiniLM-L6-v2");
+      const pdfjsLib = await loadPdfJs();
     } catch (error) {
       console.error("Error initializing tokenizer and model:", error);
     }
