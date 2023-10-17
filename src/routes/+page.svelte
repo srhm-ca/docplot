@@ -233,7 +233,7 @@
           role="button"
           tabindex="0"
         >
-          <p>Drag plain text files here.</p>
+          <p>Drag plain text files and PDFs here.</p>
         </div>
       </div>
       <div id="right-gutter">
