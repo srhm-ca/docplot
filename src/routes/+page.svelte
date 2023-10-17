@@ -223,7 +223,7 @@
       <p>Loading model and tokenizer...</p>
     </div>
   {:else}
-    <div style="display: flex; gap: 1ch;"><h1>DocPlot</h1><p style="font-style: oblique; font-size: 90%;">Semantic search in your browser, privately.</p></div>
+    <div style="display: flex; gap: 1ch; margin-bottom: -1em;"><h1>DocPlot</h1><p style="font-style: oblique; font-size: 90%;">Semantic search in your browser, privately.</p></div>
     <div id="content">
       <div id="left-gutter">
         <div id="file-list">
@@ -281,6 +281,8 @@
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
     min-width: fit-content;
     color: #555;
+    max-height: 4em;
+    flex-shrink: 1;
   }
 
   #file-list {
