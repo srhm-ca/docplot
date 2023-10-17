@@ -30,6 +30,9 @@
 	"dependencies": {
 		"@xenova/transformers": "^2.6.2",
 		"ml-pca": "^4.1.1",
-		"officeparser": "^3.3.0"
+		"office-text-extractor": "^3.0.2",
+		"pdf-parse": "^1.1.1",
+		"pdfjs": "^2.5.2",
+		"pdfjs-dist": "^3.11.174"
 	}
 }
