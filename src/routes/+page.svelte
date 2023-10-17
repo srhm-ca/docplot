@@ -29,7 +29,7 @@
   let model;
 
   // initialize query
-  let query = "Search here...";
+  let query = "";
   let queryPrevious = "";
   let queryEmbedding = [];
   let calculationTimeout = null;
@@ -255,7 +255,7 @@
       </div>
       <div id="right-gutter">
         <Ranker {queryEmbedding} />
-        <input style="font-size: 100%;" id="query-input" bind:value={query} />
+        <input style="font-size: 100%;" id="query-input" placeholder="Search here..." bind:value={query} />
       </div>
     </div>
   {/if}
