@@ -51,7 +51,7 @@
   });
 </script>
 
-<div style="flex-grow: 1;">
+<div style="flex-grow: 1; overflow-y: scroll;">
   {#if Rank.length > 0}
     <ol>
       {#each Rank as { name, similarity }, i}
