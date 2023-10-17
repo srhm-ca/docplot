@@ -1,5 +1,5 @@
 # DocPlot
-DocPlot lets you rank documents by how closely they match arbitrary search queries. You can drag and drop any plain-text file. Note: works best with English documents.
+DocPlot lets you rank documents by how closely they match arbitrary search queries. You can drag and drop in text file or PDF from your computer and the web app will encode it with a small language model running on your device. Note: works best with English documents.
 
 DocPlot is written in `Svelte` and `transformers.js`.
 
