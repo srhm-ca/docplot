@@ -313,7 +313,9 @@
   }
 
   #app {
-    height: 85vh;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
   }
 
   #content {
