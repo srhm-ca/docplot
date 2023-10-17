@@ -276,15 +276,16 @@
   #drop_zone {
     padding-top: 0.5em;
     border: 1px solid #ccc;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
     padding: 25px;
     text-align: center;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
     min-width: fit-content;
+    color: #555;
   }
 
   #file-list {
     border: 1px solid #ccc;
+    font-size: 90%;
     flex-grow: 1;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
     overflow-y: scroll;
