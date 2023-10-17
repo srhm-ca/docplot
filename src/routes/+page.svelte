@@ -10,6 +10,11 @@
   // import components
   import Ranker from "$lib/components/Ranker.svelte";
 
+  // import pdf.js
+  import * as pdfjsLib from "pdfjs-dist";
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  
   // initialize tokenizer and model
   let tokenizer;
   let model;
@@ -53,53 +58,77 @@
     }, 500);
   }
 
-  // function for embedding dropped files
-  async function processEmbeddings(file) {
+  // function for processing embeddings
+  async function processEmbeddings(file, text) {
+    if (text) {
+      // split the text into chunks of 512 tokens
+      let chunks = chunkString(text, 512);
+      let chunkEmbeddings = [];
+      // for each chink, calculate the embeddings
+      for (let chunk of chunks) {
+        // print progress to log
+        console.log(
+          `Processing ${file.name}: ${chunks.indexOf(chunk) + 1}/${
+            chunks.length
+          }`
+        );
+        // tokenize chunks
+        let inputs = await tokenizer(chunk, {
+          truncation: true,
+          padding: true,
+        });
+        // encode tokens
+        let output = await model(inputs);
+        // get embedding from final layer's CLS token
+        chunkEmbeddings.push(output.last_hidden_state.data.slice(0, 384));
+      }
+      // calculate the average embeddings
+      let avgVector = averageVectors(chunkEmbeddings);
+      embeddings.update((arr) => [...arr, avgVector]);
+    }
+  }
+
+  // function for processing dropped files
+  async function processFile(file) {
     try {
-      if (isPlainText(file)) {
+      if (file.type.startsWith("text/")) {
         let reader = new FileReader();
         reader.onload = async function () {
           let text = reader.result;
-          // split the text into chunks of 512 tokens
-          let chunks = chunkString(text, 512);
-          let chunkEmbeddings = [];
-          // for each chink, calculate the embeddings
-          for (let chunk of chunks) {
-            // print progress to log
-            console.log(
-              `Processing ${file.name}: ${chunks.indexOf(chunk) + 1}/${
-                chunks.length
-              }`
-            );
-            // tokenize chunks
-            let inputs = await tokenizer(chunk, {
-              truncation: true,
-              padding: true,
-            });
-            // encode tokens
-            let output = await model(inputs);
-            // get embedding from final layer's CLS token
-            chunkEmbeddings.push(output.last_hidden_state.data.slice(0, 384));
+          processEmbeddings(file, text);
+        };
+        reader.readAsText(file);
+      } else if (file.type === "application/pdf") {
+        const reader = new FileReader();
+
+        reader.onload = async function (event) {
+          const pdfData = event.target.result;
+
+          try {
+            const loadingTask = pdfjsLib.getDocument({ data: pdfData });
+            const pdf = await loadingTask.promise;
+            const maxPages = pdf.numPages;
+            let text = "";
+            for (let i = 1; i <= maxPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              text += content.items.map((item) => item.str).join(" ");
+            }
+            processEmbeddings(file, text);
+          } catch (error) {
+            console.error("Error loading the PDF:", error);
           }
-          // calculate the average embeddings
-          let avgVector = averageVectors(chunkEmbeddings);
-          embeddings.update((arr) => [...arr, avgVector]);
         };
 
-        reader.readAsText(file);
+        // Read the PDF file as an ArrayBuffer
+        reader.readAsArrayBuffer(file);
       } else {
         setFiles($files.filter((f) => f.name !== file.name));
-        alert("Only plain text files are allowed.");
+        alert("Supported file types are plain text and PDF.");
       }
     } catch (error) {
       console.error("An error occurred while processing the file:", error);
     }
-  }
-
-  // returns true if file is plain text
-  function isPlainText(file) {
-    const textTypePrefixes = ["text/", "application/"];
-    return textTypePrefixes.some((prefix) => file.type.startsWith(prefix));
   }
 
   // drop handler
@@ -110,7 +139,7 @@
     droppedFiles.forEach((file) => {
       if (!$files.some((existingFile) => existingFile.name === file.name)) {
         setFiles([...$files, file]);
-        processEmbeddings(file);
+        processFile(file);
       } else {
         alert(`File '${file.name}' is already in the list.`);
       }
