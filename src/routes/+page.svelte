@@ -131,7 +131,6 @@
         reader.readAsArrayBuffer(file);
       } else if (file.type === "applications/msword" || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
         const reader = new FileReader();
-        const mammoth = await loadMammoth();
         mammoth.extractRawText({ arrayBuffer: file }).then((result) => {
           const text = result.value;
           console.log(text);
@@ -204,6 +203,7 @@
       );
       model = await AutoModel.from_pretrained("Xenova/all-MiniLM-L6-v2");
       const pdfjsLib = await loadPdfJs();
+      const mammoth = await loadMammoth();
     } catch (error) {
       console.error("Error initializing tokenizer and model:", error);
     }
