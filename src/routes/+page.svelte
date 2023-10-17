@@ -250,7 +250,7 @@
           role="button"
           tabindex="0"
         >
-          <p>Drag text/DOCX/PDF files here.</p>
+          <p>Drag text/.docx/.pdf files here.</p>
         </div>
       </div>
       <div id="right-gutter">
