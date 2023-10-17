@@ -12,11 +12,18 @@
 
   // import pdf.js
   const loadPdfJs = async () => {
-  const pdfjsLib = await import('pdfjs-dist');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  return pdfjsLib;
-  }
-  
+    const pdfjsLib = await import("pdfjs-dist");
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    return pdfjsLib;
+  };
+
+  // import mammoth
+  const loadMammoth = async () => {
+    const mammoth = await import("mammoth");
+    return mammoth;
+  };
+
   // initialize tokenizer and model
   let tokenizer;
   let model;
@@ -121,12 +128,19 @@
             console.error("Error loading the PDF:", error);
           }
         };
-
-        // Read the PDF file as an ArrayBuffer
+        reader.readAsArrayBuffer(file);
+      } else if (file.type === "applications/msword" || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        const reader = new FileReader();
+        const mammoth = await loadMammoth();
+        mammoth.extractRawText({ arrayBuffer: file }).then((result) => {
+          const text = result.value;
+          console.log(text);
+          processEmbeddings(file, text);
+        });
         reader.readAsArrayBuffer(file);
       } else {
         setFiles($files.filter((f) => f.name !== file.name));
-        alert("Supported file types are plain text and PDF.");
+        alert("Supported file types: text/DOCX/PDF.");
       }
     } catch (error) {
       console.error("An error occurred while processing the file:", error);
@@ -236,7 +250,7 @@
           role="button"
           tabindex="0"
         >
-          <p>Drag plain text files and PDFs here.</p>
+          <p>Drag text/DOCX/PDF files here.</p>
         </div>
       </div>
       <div id="right-gutter">
