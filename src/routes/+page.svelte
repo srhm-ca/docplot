@@ -223,7 +223,7 @@
       <p>Loading model and tokenizer...</p>
     </div>
   {:else}
-    <div style="display: flex; gap: 1ch; margin-bottom: -1em;"><h1>DocPlot</h1><p style="font-style: oblique; font-size: 90%; flex-grow: 1;">Semantic search in your browser, privately.</p><a style="font-size: 90%; align-self: center;" target="_blank" href="https://srhm.ca/">http://srhm.ca</a></div>
+    <div style="display: flex; gap: 1ch; margin-bottom: -1em;"><h1>DocPlot</h1><p style="font-style: oblique; font-size: 90%; flex-grow: 1;">Semantic search in your browser, privately.</p><a style="font-size: 90%; align-self: center;" target="_blank" href="https://srhm.ca/">https://srhm.ca</a></div>
     <div id="content">
       <div id="left-gutter">
         <div id="file-list">
