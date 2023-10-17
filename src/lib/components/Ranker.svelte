@@ -51,7 +51,7 @@
   });
 </script>
 
-<div style="flex-grow: 1; overflow-y: scroll; box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); margin-bottom: 1em; width: 100%;">
+<div style="flex-grow: 1; overflow-y: scroll; box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2); border: 1px solid #ccc; margin-bottom: 1em; width: 100%;">
   {#if Rank.length > 0}
     <ol style="padding: 1em;">
       {#each Rank as { name, similarity }, i}
