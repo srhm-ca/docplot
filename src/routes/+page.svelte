@@ -290,7 +290,8 @@
     font-size: 90%;
     flex-grow: 1;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-    overflow-y: scroll;
+    overflow-y: auto;
+    height: 100%;
   }
 
   #file {
